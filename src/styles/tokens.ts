@@ -1,18 +1,14 @@
-﻿export const COLORS = {
-  surface: '#FFFFFF',       // Putih bersih untuk card & container
-  background: '#F8FAFC',    // Putih kebiruan yang sangat soft untuk background utama
-  cardBg: '#FFFFFF',        // Latar belakang kartu
-  border: '#E2E8F0',        // Garis batas abu-abu terang
-  text: '#0F172A',          // Teks gelap agar mudah dibaca
-  muted: '#64748B',         // Teks sekunder abu-abu elegan
-  accent: '#0284C7',        // Biru utama (Ocean Blue)
-  accentLight: '#E0F2FE',   // Biru muda transparan untuk badge/ikon
-  danger: '#EF4444',        // Merah untuk tombol hapus/peringatan
-  heartActive: '#0284C7',   // Warna ikon aktif bernuansa biru
+export const COLORS = {
+  surface: "#FFFFFF",
+  background: "#F8FAFC",
+  border: "#E5E7EB",
+  text: "#111827",
+  muted: "#6B7280",
+  accent: "#2563EB",
+  danger: "#EF4444",
 };
 
 export const SPACE = {
-  xs: 4,
   s: 8,
   m: 12,
   l: 16,
@@ -20,13 +16,12 @@ export const SPACE = {
 };
 
 export const RADIUS = {
-  card: 16,
-  button: 12,
+  card: 14,
 };
 
 export const TYPO = {
-  h1: 28,
-  title: 18,
+  h1: 26,
+  title: 17,
   body: 14,
   caption: 12,
 };

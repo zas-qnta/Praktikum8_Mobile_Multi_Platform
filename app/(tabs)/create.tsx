@@ -1,47 +1,46 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  Pressable,
-  StyleSheet,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import { useDiary } from '../../src/context/DiaryContext';
-import {
-  COLORS,
-  SPACE,
-  RADIUS,
-} from '../../src/styles/tokens';
-
-const MOODS = ['😊', '🤭', '🥱', '🫨', '🤔', '🥲', '🤩'];
+import { useState } from "react";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert } from "../../src/utils/alert";
+import { useRouter } from "expo-router";
+import { useAppDispatch } from "../../src/store/hooks";
+import { addDiary } from "../../src/features/diary/diarySlice";
+import { MOODS } from "../../src/constants/moods";
+import { COLORS, RADIUS, SPACE } from "../../src/styles/tokens";
 
 export default function CreateScreen() {
   const router = useRouter();
-  const { addEntry } = useDiary();
+  const dispatch = useAppDispatch();
 
-  const [title, setTitle] = useState('');
-  const [date, setDate] = useState('2026-11-02');
-  const [body, setBody] = useState('');
-  const [mood, setMood] = useState('😊');
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [mood, setMood] = useState(MOODS[0]);
 
-  const canSave = title.trim().length > 0 && body.trim().length > 0;
+  const saveDiary = () => {
+    if (title.trim().length < 3) {
+      Alert.alert("Validasi", "Judul minimal 3 karakter");
+      return;
+    }
+    if (!body.trim()) {
+      Alert.alert("Validasi", "Isi diary wajib diisi");
+      return;
+    }
 
-  const save = () => {
-    if (!canSave) return;
-    
-    addEntry({
-      title: title.trim(),
-      date: date.trim(),
-      preview: body.trim().slice(0, 80),
-      body: body.trim(),
-      mood,
-    });
+    const today = new Date().toISOString().slice(0, 10);
 
-    setTitle('');
-    setBody('');
-    setMood('😊');
-    router.replace('/');
+    dispatch(
+      addDiary({
+        title: title.trim(),
+        date: today,
+        preview: body.trim().slice(0, 100),
+        body: body.trim(),
+        mood,
+      })
+    );
+
+    setTitle("");
+    setBody("");
+    setMood(MOODS[0]);
+    router.replace("/");
   };
 
   return (
@@ -51,14 +50,7 @@ export default function CreateScreen() {
       <TextInput
         value={title}
         onChangeText={setTitle}
-        placeholder="Judul"
-        style={styles.input}
-      />
-
-      <TextInput
-        value={date}
-        onChangeText={setDate}
-        placeholder="YYYY-MM-DD"
+        placeholder="Judul diary (minimal 3 karakter)"
         style={styles.input}
       />
 
@@ -70,29 +62,20 @@ export default function CreateScreen() {
         style={[styles.input, styles.bodyInput]}
       />
 
-      <Text style={styles.label}>Mood</Text>
-      
       <View style={styles.moodRow}>
         {MOODS.map((item) => (
           <Pressable
             key={item}
             onPress={() => setMood(item)}
-            style={[
-              styles.moodButton,
-              mood === item && styles.moodSelected,
-            ]}
+            style={[styles.moodButton, mood === item && styles.selectedMood]}
           >
-            <Text style={styles.moodEmoji}>{item}</Text>
+            <Text style={styles.mood}>{item}</Text>
           </Pressable>
         ))}
       </View>
 
-      <Pressable
-        onPress={save}
-        disabled={!canSave}
-        style={[styles.saveButton, !canSave && styles.disabled]}
-      >
-        <Text style={styles.saveText}>Simpan</Text>
+      <Pressable onPress={saveDiary} style={styles.button}>
+        <Text style={styles.buttonText}>Simpan ke Redux</Text>
       </Pressable>
     </View>
   );
@@ -107,26 +90,21 @@ const styles = StyleSheet.create({
   },
   heading: {
     fontSize: 24,
-    fontWeight: '700',
-    color: COLORS.text,
+    fontWeight: "700",
   },
   input: {
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: RADIUS.card,
     padding: 12,
-    backgroundColor: '#96d4f1',
+    backgroundColor: COLORS.surface,
   },
   bodyInput: {
-    minHeight: 120,
-    textAlignVertical: 'top',
-  },
-  label: {
-    fontWeight: '700',
-    color: COLORS.text,
+    minHeight: 140,
+    textAlignVertical: "top",
   },
   moodRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: SPACE.s,
   },
   moodButton: {
@@ -134,27 +112,23 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: 12,
-    backgroundColor: '#96d4f1',
+    backgroundColor: COLORS.surface,
   },
-  moodSelected: {
+  selectedMood: {
     borderColor: COLORS.accent,
     borderWidth: 2,
   },
-  moodEmoji: {
-    fontSize: 26,
+  mood: {
+    fontSize: 28,
   },
-  saveButton: {
+  button: {
     padding: 14,
-    backgroundColor: COLORS.accent,
     borderRadius: RADIUS.card,
-    alignItems: 'center',
-    marginTop: SPACE.s,
+    backgroundColor: COLORS.accent,
+    alignItems: "center",
   },
-  disabled: {
-    opacity: 0.45,
-  },
-  saveText: {
-    color: '#96d4f1',
-    fontWeight: '700',
+  buttonText: {
+    color: "#FFFFFF",
+    fontWeight: "700",
   },
 });

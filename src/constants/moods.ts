@@ -1,0 +1,1 @@
+export const MOODS = ["\u{1F60A}", "\u{1F604}", "\u{1F60C}", "\u{1F622}"];

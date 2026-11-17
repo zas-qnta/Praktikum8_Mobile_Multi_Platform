@@ -1,60 +1,72 @@
-import React from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  Pressable,
-  StyleSheet,
-} from 'react-native';
-import {
-  Stack,
-  useLocalSearchParams,
-} from 'expo-router';
-import { useDiary } from '../../src/context/DiaryContext';
-import {
-  COLORS,
-  SPACE,
-  RADIUS,
-  TYPO,
-} from '../../src/styles/tokens';
+import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
+import { Alert } from "../../src/utils/alert";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useAppDispatch, useAppSelector } from "../../src/store/hooks";
+import { deleteDiary, toggleFavorite } from "../../src/features/diary/diarySlice";
+import { COLORS, RADIUS, SPACE } from "../../src/styles/tokens";
 
 export default function DetailScreen() {
+  const router = useRouter();
+  const dispatch = useAppDispatch();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { getById, likedIds, toggleLike } = useDiary();
 
-  const entry = getById(id);
+  const entry = useAppSelector((state) =>
+    state.diary.entries.find((item) => item.id === Number(id))
+  );
 
   if (!entry) {
-    return (
-      <View style={styles.center}>
-        <Text style={styles.emptyText}>Diary tidak ditemukan.</Text>
-      </View>
-    );
+    return <Text style={{ padding: 16 }}>Diary tidak ditemukan.</Text>;
   }
 
-  const liked = likedIds.has(entry.id);
+  const confirmDelete = () => {
+    Alert.alert("Hapus Diary", "Diary akan dihapus dari Redux Store.", [
+      {
+        text: "Batal",
+        style: "cancel",
+      },
+      {
+        text: "Hapus",
+        style: "destructive",
+        onPress: () => {
+          dispatch(deleteDiary(entry.id));
+          router.replace("/");
+        },
+      },
+    ]);
+  };
 
   return (
-    <>
-      <Stack.Screen
-        options={{ title: entry.title }}
-      />
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.mood}>{entry.mood}</Text>
-        <Text style={styles.title}>{entry.title}</Text>
-        <Text style={styles.date}>{entry.date}</Text>
-        <Text style={styles.body}>{entry.body}</Text>
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.mood}>{entry.mood}</Text>
+      <Text style={styles.title}>{entry.title}</Text>
+      <Text style={styles.date}>{entry.date}</Text>
+      <Text style={styles.body}>{entry.body}</Text>
 
-        <Pressable
-          onPress={() => toggleLike(entry.id)}
-          style={styles.likeButton}
-        >
-          <Text style={styles.likeText}>
-            {liked ? '♥ Disukai' : '♡ Suka'}
-          </Text>
-        </Pressable>
-      </ScrollView>
-    </>
+      <Pressable
+        onPress={() => dispatch(toggleFavorite({ id: entry.id }))}
+        style={styles.favoriteButton}
+      >
+        <Text style={styles.white}>
+          {entry.liked ? "Hapus dari Favorite" : "Tambah ke Favorite"}
+        </Text>
+      </Pressable>
+
+      <Pressable
+        onPress={() =>
+          router.push({
+            pathname: "/edit/[id]",
+            params: { id: String(entry.id) },
+          })
+        }
+        style={styles.editButton}
+      >
+        <Text style={styles.editText}>Edit Diary</Text>
+      </Pressable>
+
+      <Pressable onPress={confirmDelete} style={styles.deleteButton}>
+        <Text style={styles.white}>Hapus Diary</Text>
+      </Pressable>
+    </ScrollView>
   );
 }
 
@@ -62,47 +74,49 @@ const styles = StyleSheet.create({
   container: {
     padding: SPACE.l,
     gap: SPACE.m,
-    backgroundColor: COLORS.background,
-    flexGrow: 1,
   },
   mood: {
-    fontSize: 64,
+    fontSize: 60,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 26,
+    fontWeight: "700",
     color: COLORS.text,
   },
   date: {
-    fontSize: TYPO.caption,
     color: COLORS.muted,
   },
   body: {
-    fontSize: TYPO.body,
-    lineHeight: 22,
+    fontSize: 16,
+    lineHeight: 24,
     color: COLORS.text,
   },
-  likeButton: {
-    padding: SPACE.m,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+  favoriteButton: {
+    padding: 14,
+    alignItems: "center",
     borderRadius: RADIUS.card,
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    marginTop: SPACE.s,
+    backgroundColor: COLORS.accent,
   },
-  likeText: {
-    fontWeight: '700',
-    color: COLORS.danger,
+  editButton: {
+    padding: 14,
+    alignItems: "center",
+    borderRadius: RADIUS.card,
+    borderWidth: 1,
+    borderColor: COLORS.accent,
+    backgroundColor: COLORS.surface,
   },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: COLORS.background,
+  editText: {
+    color: COLORS.accent,
+    fontWeight: "700",
   },
-  emptyText: {
-    color: COLORS.muted,
-    fontSize: TYPO.body,
+  deleteButton: {
+    padding: 14,
+    alignItems: "center",
+    borderRadius: RADIUS.card,
+    backgroundColor: COLORS.danger,
+  },
+  white: {
+    color: "#FFFFFF",
+    fontWeight: "700",
   },
 });
